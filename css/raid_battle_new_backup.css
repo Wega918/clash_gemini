@@ -1,0 +1,1313 @@
+/* ═══════════════════════════════════════════════════════════════════
+   RAID BATTLE SYSTEM 2026 - MODERN BATTLE UI
+   Компактная, красивая, адаптивная боевая система
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Цветовая палитра */
+  --raid-bg-space: radial-gradient(circle at 50% 20%, rgba(95,131,203,.28), rgba(5,9,18,.95));
+  --raid-panel-dark: rgba(8,14,24,.92);
+  --raid-panel-light: rgba(14,22,38,.86);
+  --raid-glass: rgba(255,255,255,.08);
+  --raid-glass-strong: rgba(255,255,255,.14);
+  --raid-border: rgba(255,255,255,.12);
+  --raid-border-bright: rgba(255,255,255,.22);
+  
+  /* Accent colors */
+  --raid-gold: #ffcf58;
+  --raid-gold-bright: #ffd971;
+  --raid-violet: #9f77ff;
+  --raid-red: #ff6e6e;
+  --raid-green: #88ef9b;
+  --raid-blue: #5eb3ff;
+  --raid-orange: #ff9a3d;
+  
+  /* Shadows */
+  --raid-shadow-soft: 0 12px 32px rgba(0,0,0,.24);
+  --raid-shadow-hard: 0 18px 48px rgba(0,0,0,.36);
+  --raid-shadow-glow: 0 0 24px rgba(255,207,88,.18);
+  
+  /* Размеры */
+  --raid-viewport-w: 820px;
+  --raid-viewport-h: 560px;
+  --raid-border-radius: 28px;
+  --raid-border-radius-small: 18px;
+  --raid-spacing: 14px;
+  
+  /* Анимации */
+  --raid-transition-fast: 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  --raid-transition-smooth: 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  --raid-transition-slow: 0.48s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL RESET & BASE
+   ═══════════════════════════════════════════════════════════════════ */
+
+#raid-root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#raid-root *, #raid-root *::before, #raid-root *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   OVERLAY SHELL - FULLSCREEN CONTAINER
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-overlay-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: radial-gradient(circle at 50% 20%, rgba(95,131,203,.35), rgba(5,9,18,.95));
+  backdrop-filter: blur(24px) saturate(1.3) brightness(0.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3) brightness(0.6);
+  overflow: hidden;
+  animation: raidShellFadeIn 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Blur the page content behind */
+body.raid-active > *:not(#raid-root) {
+  filter: blur(8px) brightness(0.4);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+@keyframes raidShellFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN VIEWPORT FRAME
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-viewport-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.raid-viewport-frame {
+  position: relative;
+  width: var(--raid-viewport-w);
+  height: var(--raid-viewport-h);
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--raid-border-radius);
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.06) 0%,
+    rgba(255,255,255,.02) 100%
+  );
+  box-shadow: 
+    0 48px 120px rgba(0,0,0,.52),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(255,255,255,.04);
+  transform-origin: center center;
+  transition: transform var(--raid-transition-smooth);
+}
+
+/* Backdrop with atmospheric gradients */
+.raid-backdrop {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.09), transparent 28%),
+    radial-gradient(circle at 85% 0%, rgba(120,190,255,.16), transparent 35%),
+    radial-gradient(circle at 50% 100%, rgba(255,180,120,.08), transparent 40%),
+    linear-gradient(180deg, rgba(14,23,39,.88) 0%, rgba(8,12,20,.98) 100%);
+  pointer-events: none;
+}
+
+/* Vignette overlay */
+.raid-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 45%,
+    transparent 35%,
+    rgba(0,0,0,.28) 100%
+  );
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOP HUD ELEMENTS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-exit-btn {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  z-index: 100;
+  padding: 10px 16px;
+  border: 1px solid var(--raid-border);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    var(--raid-panel-light),
+    var(--raid-panel-dark)
+  );
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--raid-transition-fast);
+  box-shadow: var(--raid-shadow-soft);
+}
+
+.raid-exit-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(
+    180deg,
+    rgba(18,28,47,.92),
+    rgba(10,16,28,.96)
+  );
+  border-color: var(--raid-border-bright);
+  box-shadow: 0 16px 40px rgba(0,0,0,.32);
+}
+
+.raid-exit-btn:active {
+  transform: translateY(0);
+}
+
+.raid-hud-top {
+  position: absolute;
+  left: 100px;
+  right: 18px;
+  top: 18px;
+  z-index: 90;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--raid-spacing);
+  pointer-events: none;
+}
+
+.raid-hud-top > * {
+  pointer-events: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PHASE INDICATOR BLOCK
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-phase-block {
+  padding: 12px 18px;
+  border-radius: 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(18,28,47,.90),
+    rgba(8,14,24,.94)
+  );
+  border: 1px solid var(--raid-border);
+  box-shadow: var(--raid-shadow-soft);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all var(--raid-transition-smooth);
+  animation: raidPhaseSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes raidPhaseSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.raid-phase-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.64);
+  font-weight: 900;
+}
+
+.raid-phase-title {
+  margin-top: 3px;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 900;
+  color: #fff4d1;
+  text-shadow: 0 2px 28px rgba(255,201,78,.22);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOP STATS PILLS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-top-stats {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.raid-stat-pill {
+  min-width: 110px;
+  padding: 10px 14px;
+  border-radius: 22px;
+  background: linear-gradient(
+    135deg,
+    rgba(12,20,35,.90),
+    rgba(7,12,22,.96)
+  );
+  border: 1px solid var(--raid-border);
+  text-align: center;
+  box-shadow: var(--raid-shadow-soft);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all var(--raid-transition-fast);
+}
+
+.raid-stat-pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--raid-border-bright);
+  box-shadow: 0 18px 36px rgba(0,0,0,.28);
+}
+
+.raid-stat-pill span {
+  display: block;
+  font-size: 10px;
+  color: rgba(255,255,255,.72);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.raid-stat-pill strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(255,255,255,.18);
+}
+
+/* Animated counter effect */
+@keyframes raidCounterPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.raid-stat-pill strong.pulse {
+  animation: raidCounterPulse 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TARGET INFO CHIP
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-target-chip {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 100px;
+  z-index: 85;
+  display: flex;
+  align-items: center;
+  gap: var(--raid-spacing);
+  padding: 12px 16px;
+  border-radius: 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(9,15,26,.88),
+    rgba(7,13,23,.76)
+  );
+  border: 1px solid var(--raid-border);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow: var(--raid-shadow-soft);
+  animation: raidTargetSlideIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes raidTargetSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.raid-target-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--raid-border-bright);
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,.28);
+}
+
+.raid-target-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.raid-target-meta {
+  min-width: 180px;
+  flex-shrink: 0;
+}
+
+.raid-target-name {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 2px 12px rgba(0,0,0,.28);
+}
+
+.raid-target-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,.76);
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+.raid-target-loot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.raid-loot-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: all var(--raid-transition-fast);
+}
+
+.raid-loot-chip:hover {
+  background: rgba(255,255,255,.12);
+  transform: scale(1.04);
+}
+
+.raid-loot-chip img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.32));
+}
+
+.raid-search-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.raid-reroll-cost {
+  font-size: 11px;
+  color: rgba(255,255,255,.78);
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BATTLE SCENE CONTAINER
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-scene-wrap {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 172px;
+  bottom: 18px;
+  border-radius: var(--raid-border-radius);
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(10,16,27,.38) 0%,
+    rgba(10,16,27,.12) 100%
+  );
+  border: 1px solid var(--raid-border);
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 rgba(0,0,0,.18);
+}
+
+#raid-scene-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: linear-gradient(
+    180deg,
+    #a8ecff 0%,
+    #7dcaf6 34%,
+    #95da6d 35%,
+    #6dac4d 100%
+  );
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Scene vignette overlay */
+.raid-scene-vignette {
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(180deg, rgba(0,0,0,.10), transparent 24%, transparent 70%, rgba(0,0,0,.26)),
+    radial-gradient(circle at 50% 40%, transparent 42%, rgba(0,0,0,.28) 100%);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCENE OVERLAY (для сообщений)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-scene-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  background: linear-gradient(
+    180deg,
+    rgba(12,19,31,.16) 0%,
+    rgba(7,11,21,.52) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--raid-transition-smooth);
+  z-index: 50;
+}
+
+.raid-scene-overlay.show {
+  opacity: 1;
+}
+
+.raid-overlay-badge {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid var(--raid-border);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.92);
+}
+
+.raid-overlay-title {
+  margin-top: 18px;
+  font-size: 58px;
+  line-height: 0.95;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 16px 48px rgba(0,0,0,.42);
+  letter-spacing: -0.02em;
+}
+
+.raid-overlay-sub {
+  max-width: 520px;
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgba(255,255,255,.90);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EVENT FEED (боковые уведомления)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-event-feed {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 80;
+  max-width: 280px;
+}
+
+.raid-feed-item {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(9,14,24,.85);
+  border: 1px solid var(--raid-border);
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  opacity: 0;
+  transform: translateX(20px);
+  animation: raidFeedSlideIn 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 12px 28px rgba(0,0,0,.32);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@keyframes raidFeedSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  10%, 85% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCOUT PANELS (разведка)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-scout-panels {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 128px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  pointer-events: none;
+  z-index: 75;
+}
+
+.raid-threat-panel,
+.raid-brief-panel {
+  padding: 14px 16px;
+  border-radius: var(--raid-border-radius-small);
+  background: linear-gradient(
+    135deg,
+    rgba(9,15,26,.82),
+    rgba(9,15,26,.68)
+  );
+  border: 1px solid var(--raid-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--raid-shadow-soft);
+  pointer-events: auto;
+  transition: all var(--raid-transition-fast);
+}
+
+.raid-threat-panel:hover,
+.raid-brief-panel:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(12,20,32,.88),
+    rgba(10,16,26,.76)
+  );
+  border-color: var(--raid-border-bright);
+  box-shadow: 0 16px 32px rgba(0,0,0,.32);
+}
+
+.raid-threat-panel {
+  width: 280px;
+}
+
+.raid-brief-panel {
+  width: 280px;
+  margin-left: auto;
+}
+
+.raid-mini-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.68);
+  font-weight: 900;
+}
+
+.raid-threat-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.raid-threat-pill {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,100,100,.14);
+  border: 1px solid rgba(255,100,100,.28);
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255,180,180,.95);
+  transition: all var(--raid-transition-fast);
+}
+
+.raid-threat-pill:hover {
+  background: rgba(255,100,100,.22);
+  border-color: rgba(255,100,100,.42);
+  transform: scale(1.05);
+}
+
+.raid-brief-text {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.48;
+  color: rgba(255,255,255,.86);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BOTTOM DOCK (панель армии и кнопки)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-bottom-dock {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--raid-spacing);
+  padding: 12px 14px;
+  border-radius: var(--raid-border-radius);
+  background: linear-gradient(
+    135deg,
+    rgba(8,14,24,.94),
+    rgba(6,12,22,.88)
+  );
+  border: 1px solid var(--raid-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 20px 48px rgba(0,0,0,.42);
+  z-index: 95;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ARMY STRIP (карточки войск)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-army-strip {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+
+.raid-army-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.raid-army-strip::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.raid-army-strip::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.18);
+  border-radius: 999px;
+}
+
+.raid-army-strip::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,.28);
+}
+
+/* Карточка войска/героя/заклинания */
+.raid-army-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 82px;
+  max-width: 82px;
+  padding: 10px 8px 9px;
+  border-radius: var(--raid-border-radius-small);
+  border: 1px solid rgba(255,255,255,.10);
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,.12) 0%,
+    rgba(255,255,255,.06) 100%
+  );
+  cursor: pointer;
+  transition: all var(--raid-transition-fast);
+  box-shadow: 0 4px 12px rgba(0,0,0,.18);
+}
+
+.raid-army-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,210,105,.95);
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,.16) 0%,
+    rgba(255,255,255,.08) 100%
+  );
+  box-shadow: 
+    0 18px 32px rgba(0,0,0,.32),
+    0 0 0 1px rgba(255,214,123,.32) inset,
+    0 0 24px rgba(255,214,123,.18);
+}
+
+.raid-army-card.selected {
+  transform: translateY(-4px);
+  border-color: var(--raid-gold-bright);
+  background: linear-gradient(
+    135deg,
+    rgba(255,207,88,.18) 0%,
+    rgba(255,207,88,.08) 100%
+  );
+  box-shadow: 
+    0 18px 32px rgba(0,0,0,.36),
+    0 0 0 2px var(--raid-gold) inset,
+    0 0 28px rgba(255,207,88,.28);
+}
+
+.raid-army-card.disabled {
+  opacity: .38;
+  filter: grayscale(0.8);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.raid-army-card img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.38));
+  transition: transform var(--raid-transition-fast);
+}
+
+.raid-army-card:hover img,
+.raid-army-card.selected img {
+  transform: scale(1.08);
+}
+
+.raid-army-card .qty {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1a2538, #0f1824);
+  border: 1px solid rgba(255,255,255,.16);
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.48);
+  box-shadow: 0 2px 8px rgba(0,0,0,.32);
+}
+
+.raid-army-card .nm {
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.2;
+  min-height: 26px;
+  color: #ffffff;
+  text-shadow: 0 1px 6px rgba(0,0,0,.48);
+}
+
+.raid-army-card .lvl {
+  font-size: 9px;
+  color: rgba(255,255,255,.70);
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACTION BUTTONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.raid-cta-stack {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.raid-btn {
+  border: none;
+  border-radius: 18px;
+  padding: 12px 18px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all var(--raid-transition-fast);
+  box-shadow: 0 12px 28px rgba(0,0,0,.24);
+  white-space: nowrap;
+}
+
+.raid-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(0,0,0,.32);
+}
+
+.raid-btn:active {
+  transform: translateY(0);
+}
+
+.raid-btn:disabled {
+  opacity: .46;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+  pointer-events: none;
+}
+
+/* Primary button (золото) */
+.raid-btn-primary {
+  background: linear-gradient(
+    135deg,
+    #ffdd71 0%,
+    #f4a723 100%
+  );
+  color: #5a3100;
+  text-shadow: 0 1px 2px rgba(255,255,255,.28);
+}
+
+.raid-btn-primary:hover {
+  background: linear-gradient(
+    135deg,
+    #ffe488 0%,
+    #f5b240 100%
+  );
+  box-shadow: 0 16px 36px rgba(217,137,0,.38);
+}
+
+/* Attack button (большая) */
+.raid-btn-attack {
+  min-width: 140px;
+  font-size: 17px;
+  padding: 14px 24px;
+}
+
+/* Ability button (фиолетовая) */
+.raid-btn-ability {
+  background: linear-gradient(
+    135deg,
+    #d8c0ff 0%,
+    #9262ff 100%
+  );
+  color: #25114f;
+  text-shadow: 0 1px 2px rgba(255,255,255,.32);
+}
+
+.raid-btn-ability:hover {
+  background: linear-gradient(
+    135deg,
+    #e3d0ff 0%,
+    #a47aff 100%
+  );
+  box-shadow: 0 16px 36px rgba(146,98,255,.38);
+}
+
+/* Danger button (красная) */
+.raid-btn-danger {
+  background: linear-gradient(
+    135deg,
+    #ff928e 0%,
+    #de514d 100%
+  );
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.32);
+}
+
+.raid-btn-danger:hover {
+  background: linear-gradient(
+    135deg,
+    #ffa6a2 0%,
+    #e76662 100%
+  );
+  box-shadow: 0 16px 36px rgba(222,81,77,.38);
+}
+
+/* Ghost button (прозрачная) */
+.raid-btn-ghost {
+  background: rgba(255,255,255,.10);
+  color: #ffffff;
+  border: 1px solid var(--raid-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.raid-btn-ghost:hover {
+  background: rgba(255,255,255,.16);
+  border-color: var(--raid-border-bright);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Large tablets */
+@media (max-width: 980px) {
+  :root {
+    --raid-viewport-w: 760px;
+    --raid-viewport-h: 620px;
+  }
+  
+  .raid-hud-top {
+    left: 88px;
+  }
+  
+  .raid-phase-title {
+    font-size: 24px;
+  }
+  
+  .raid-target-chip {
+    top: 96px;
+  }
+  
+  .raid-scene-wrap {
+    top: 164px;
+  }
+  
+  .raid-threat-panel,
+  .raid-brief-panel {
+    width: 240px;
+  }
+}
+
+/* Tablets / Small laptops */
+@media (max-width: 760px) {
+  :root {
+    --raid-viewport-w: 520px;
+    --raid-viewport-h: 660px;
+  }
+  
+  .raid-overlay-shell {
+    padding: 12px;
+  }
+  
+  .raid-hud-top {
+    left: 80px;
+    right: 12px;
+    top: 12px;
+    gap: 10px;
+  }
+  
+  .raid-phase-block {
+    padding: 10px 14px;
+    border-radius: 20px;
+  }
+  
+  .raid-phase-title {
+    font-size: 20px;
+  }
+  
+  .raid-top-stats {
+    gap: 8px;
+  }
+  
+  .raid-stat-pill {
+    min-width: 82px;
+    padding: 8px 10px;
+  }
+  
+  .raid-stat-pill strong {
+    font-size: 20px;
+  }
+  
+  .raid-target-chip {
+    left: 12px;
+    right: 12px;
+    top: 84px;
+    gap: 10px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+  }
+  
+  .raid-target-name {
+    font-size: 18px;
+  }
+  
+  .raid-search-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .raid-scene-wrap {
+    left: 12px;
+    right: 12px;
+    top: 158px;
+    bottom: 12px;
+  }
+  
+  .raid-overlay-title {
+    font-size: 38px;
+  }
+  
+  .raid-scout-panels {
+    left: 12px;
+    right: 12px;
+    bottom: 124px;
+    gap: 10px;
+  }
+  
+  .raid-threat-panel,
+  .raid-brief-panel {
+    width: auto;
+    flex: 1;
+    padding: 12px 14px;
+  }
+  
+  .raid-bottom-dock {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .raid-cta-stack {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .raid-btn {
+    min-width: 0;
+    padding: 11px 12px;
+    font-size: 13px;
+  }
+  
+  .raid-btn-attack {
+    min-width: 0;
+    font-size: 14px;
+    padding: 11px 12px;
+  }
+  
+  .raid-army-card {
+    min-width: 72px;
+    max-width: 72px;
+    padding: 8px 7px;
+  }
+  
+  .raid-army-card img {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 540px) {
+  :root {
+    --raid-viewport-w: 100vw;
+    --raid-viewport-h: 100vh;
+    --raid-border-radius: 0;
+  }
+  
+  .raid-overlay-shell {
+    padding: 0;
+  }
+  
+  .raid-viewport-frame {
+    border-radius: 0;
+  }
+  
+  .raid-exit-btn {
+    left: 10px;
+    top: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .raid-hud-top {
+    left: 72px;
+    right: 8px;
+    top: 8px;
+  }
+  
+  .raid-phase-block {
+    padding: 8px 12px;
+  }
+  
+  .raid-phase-eyebrow {
+    font-size: 9px;
+  }
+  
+  .raid-phase-title {
+    font-size: 17px;
+  }
+  
+  .raid-stat-pill {
+    min-width: 68px;
+    padding: 6px 8px;
+  }
+  
+  .raid-stat-pill span {
+    font-size: 9px;
+  }
+  
+  .raid-stat-pill strong {
+    font-size: 17px;
+  }
+  
+  .raid-target-chip {
+    left: 8px;
+    right: 8px;
+    top: 72px;
+    padding: 8px 12px;
+  }
+  
+  .raid-target-name {
+    font-size: 16px;
+  }
+  
+  .raid-target-sub,
+  .raid-reroll-cost {
+    font-size: 10px;
+  }
+  
+  .raid-scene-wrap {
+    left: 8px;
+    right: 8px;
+    top: 142px;
+    bottom: 8px;
+  }
+  
+  .raid-scout-panels {
+    flex-direction: column;
+    bottom: 126px;
+    left: 8px;
+    right: 8px;
+  }
+  
+  .raid-overlay-title {
+    font-size: 32px;
+  }
+  
+  .raid-overlay-sub {
+    font-size: 14px;
+  }
+  
+  .raid-bottom-dock {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    padding: 8px 10px;
+  }
+  
+  .raid-cta-stack {
+    grid-template-columns: 1fr;
+  }
+  
+  .raid-army-card {
+    min-width: 68px;
+    max-width: 68px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UTILITY ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes raidPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes raidShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+@keyframes raidGlow {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(255,207,88,.18);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(255,207,88,.38);
+  }
+}
+
+/* Utility classes */
+.raid-pulse {
+  animation: raidPulse 2s ease-in-out infinite;
+}
+
+.raid-shake {
+  animation: raidShake 0.5s cubic-bezier(.36,.07,.19,.97);
+}
+
+.raid-glow {
+  animation: raidGlow 2s ease-in-out infinite;
+}
+
+.raid-fade-in {
+  animation: raidShellFadeIn 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hidden state */
+.raid-hidden {
+  display: none !important;
+}
+
+/* No-select */
+.raid-no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+/* Force raid-root to be fullscreen overlay */
+#raid-root {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99998 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: auto !important;
+}

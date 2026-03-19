@@ -1,0 +1,73 @@
+<?php
+if (!isset($userData) || empty($userData['id'])) {
+    echo '<div class="modal-content"><div class="modal-body">Требуется вход.</div></div>';
+    return;
+}
+?>
+<div class="raid-overlay-shell" id="raid-root" data-user-id="<?= (int)$userData['id'] ?>">
+  <div class="raid-stage-viewport">
+    <div class="raid-stage-frame">
+      <div class="raid-stage-backdrop"></div>
+
+      <button class="raid-ghost-btn raid-exit-floating" id="raid-exit-btn" type="button">Назад</button>
+
+      <div class="raid-hud-top">
+        <div class="raid-phase-block">
+          <div class="raid-phase-eyebrow" id="raid-phase-label">Поиск противника</div>
+          <div class="raid-phase-title" id="raid-phase-title">Готовимся к вылету</div>
+        </div>
+        <div class="raid-top-stats">
+          <div class="raid-stat-pill"><span>Таймер</span><strong id="raid-timer">—</strong></div>
+          <div class="raid-stat-pill"><span>Разрушено</span><strong id="raid-destruction">0%</strong></div>
+          <div class="raid-stat-pill"><span>Звезды</span><strong id="raid-stars">0★</strong></div>
+        </div>
+      </div>
+
+      <div class="raid-target-chip" id="raid-target-bar">
+        <div class="raid-target-meta">
+          <div class="raid-target-name" id="raid-target-name">—</div>
+          <div class="raid-target-sub" id="raid-target-sub">—</div>
+        </div>
+        <div class="raid-target-loot" id="raid-target-loot"></div>
+        <div class="raid-search-actions">
+          <button class="raid-primary-btn raid-reroll-btn" id="raid-reroll-btn" type="button">Сменить цель</button>
+          <div class="raid-reroll-cost" id="raid-reroll-cost">за 0 золота</div>
+        </div>
+      </div>
+
+      <div class="raid-stage-wrap">
+        <canvas id="raid-scene" width="660" height="440"></canvas>
+
+        <div class="raid-scene-vignette"></div>
+
+        <div class="raid-scene-overlay" id="raid-scene-overlay">
+          <div class="raid-overlay-badge">Рейд</div>
+          <div class="raid-overlay-title" id="raid-overlay-title">Ищем противника…</div>
+          <div class="raid-overlay-sub" id="raid-overlay-sub">Облака рассеиваются, база проявляется впереди.</div>
+        </div>
+
+        <div class="raid-event-feed" id="raid-event-feed"></div>
+
+        <div class="raid-scout-panels" id="raid-scout-panels">
+          <div class="raid-threat-panel">
+            <div class="raid-mini-title">Ключевые угрозы</div>
+            <div class="raid-threat-list" id="raid-threat-list"></div>
+          </div>
+          <div class="raid-brief-panel">
+            <div class="raid-mini-title">Фронт штурма</div>
+            <div class="raid-brief-text" id="raid-brief-text">Выберите линию высадки и начните штурм.</div>
+          </div>
+        </div>
+
+        <div class="raid-bottom-dock">
+          <div class="raid-army-strip" id="raid-army-strip"></div>
+          <div class="raid-cta-stack">
+            <button class="raid-primary-btn raid-attack-btn" id="raid-attack-btn" type="button">Атаковать</button>
+            <button class="raid-primary-btn raid-ability-btn" id="raid-ability-btn" type="button" disabled>Способность героя</button>
+            <button class="raid-danger-btn" id="raid-end-btn" type="button">Завершить бой</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
